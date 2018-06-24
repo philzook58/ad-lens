@@ -24,6 +24,7 @@ sumElements' = lens'' $ \v -> (sumElements v, \ds -> scalar ds)
 reshape' :: Container Vector t => Int -> Lens' (Vector t) (Matrix t)
 reshape' n = lens'' $ \v -> (reshape n v,  \dm -> flatten dm)
 
+-- conjugate transpose not trace
 tr'' ::  (Transposable m mt, Transposable mt m) => Lens' m mt
 tr'' = lens'' $ \x -> (tr x, \dt -> tr dt)
 
@@ -40,6 +41,7 @@ norm_2' = lens'' $ \v -> let nv = norm_2 v in (nv, \dnv -> scale (dnv + dnv) v )
 maxElement' :: Container c e => Lens' (c e) e
 maxElement' = lens'' $ \v -> let i = maxIndex v in (v ! i, dv -> scalar 0)
 -}
+
 det' :: Field t => Lens' (Matrix t) t
 det' = lens'' $ \m -> let (minv, (lndet, phase)) = invlndet m in
                     let detm = phase * exp detm in

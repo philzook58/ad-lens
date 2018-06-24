@@ -3,7 +3,7 @@ module Numeric.ADLens.Lens
     ( Lens'
     , lens''
     , unlens'' 
-    
+    , constlens
     ) where
         
 import Data.Functor.Identity
@@ -28,5 +28,12 @@ view l = getConst . l Const
 
 unlens'' :: Lens' a b -> (a -> (b, b -> a))
 unlens'' l = getCompose . l (\b -> Compose (b, id))
+
+constlens :: Lens' (a,b) c -> b -> Lens' a c
+constlens l b = lens'' $ \a -> let (c, df) = f (a,b) in
+                             (c, fst . df) where 
+                                           f = unlens'' l
+
+
 
 
