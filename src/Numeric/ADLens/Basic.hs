@@ -9,6 +9,7 @@ module Numeric.ADLens.Basic
     , sin'
     , cos'
     , exp'
+    , pow'
     , recip'
     , fst'
     , snd'
@@ -17,6 +18,7 @@ module Numeric.ADLens.Basic
     ) where
 
 import Numeric.ADLens.Lens
+import Control.Arrow ((***))
 
 relu' :: (Ord a, Num a) => Lens' a a
 relu' = lens'' $ \x -> (frelu x, brelu x) where
@@ -71,3 +73,24 @@ swap' = lens'' (\(a,b) -> ((b,a), \(db,da) -> (da, db)))
 assoc' :: Lens' ((a,b),c) (a,(b,c))
 assoc' = lens'' $ \((a,b),c) -> ((a,(b,c)), \(da,(db,dc)) -> ((da,db),dc))
 
+par' :: Lens' a b -> Lens' c d -> Lens' (a,c) (b,d)
+par' l1 l2 = lens'' f3 where
+    f1 = unlens'' l1
+    f2 = unlens'' l2
+    f3 (a,c) = ((b,d), df1 *** df2) where
+        (b,df1) = f1 a
+        (d,df2) = f2 c
+
+fan' :: Num a => Lens' a b -> Lens' a c -> Lens' a (b,c)
+fan' l1 l2 = lens'' f3 where
+    f1 = unlens'' l1
+    f2 = unlens'' l2
+    f3 a = ((b,c), \(db,dc) -> df1 db + df2 dc) where
+        (b,df1) = f1 a
+        (c,df2) = f2 a
+
+first' :: Lens' a b -> Lens' (a, c) (b, c)
+first' l = par' l id
+
+second' :: Lens' a b -> Lens' (c, a) (c, b)
+second' l = par' id l
