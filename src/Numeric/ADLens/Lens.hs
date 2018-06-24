@@ -4,6 +4,9 @@ module Numeric.ADLens.Lens
     , lens''
     , unlens'' 
     , constlens
+    , set
+    , view
+    , grad 
     ) where
         
 import Data.Functor.Identity
@@ -12,7 +15,7 @@ import Data.Functor.Compose
 
 type Lens' a b = forall f. Functor f => (b -> f b) -> a -> f a
 
-lens'' :: Functor f => (a -> (b, b -> a)) -> (b -> f b) -> a -> f a
+lens'' :: Functor f => (a -> (b, b -> a)) -> Lens' a b
 lens'' h g x = fmap j fb where
     (b, j) = h x
     fb = g b
@@ -35,5 +38,7 @@ constlens l b = lens'' $ \a -> let (c, df) = f (a,b) in
                                            f = unlens'' l
 
 
+grad :: Num b => Lens' a b -> a -> a
+grad l = (flip (set l)) 1 
 
 

@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 module Numeric.ADLens.List
-    ( sum
+    ( sum'
     , replicate'
     , repeat'
     , map'
