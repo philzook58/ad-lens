@@ -15,6 +15,8 @@ module Numeric.ADLens.Basic
     , snd'
     , swap'
     , assoc'
+    , first'
+    , second'
     ) where
 
 import Numeric.ADLens.Lens

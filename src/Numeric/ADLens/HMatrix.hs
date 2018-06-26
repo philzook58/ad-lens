@@ -1,7 +1,10 @@
 {-# LANGUAGE RankNTypes, FlexibleContexts #-}
 module Numeric.ADLens.HMatrix
-    ( 
-    
+    ( mdot'
+    , add'
+    , dot'
+    , sumElements'
+    , cmap'
     ) where
 
 import Numeric.LinearAlgebra

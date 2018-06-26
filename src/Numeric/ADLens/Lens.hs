@@ -15,7 +15,7 @@ import Data.Functor.Compose
 
 type Lens' a b = forall f. Functor f => (b -> f b) -> a -> f a
 
-lens'' :: Functor f => (a -> (b, b -> a)) -> Lens' a b
+lens'' :: (a -> (b, b -> a)) -> Lens' a b
 lens'' h g x = fmap j fb where
     (b, j) = h x
     fb = g b

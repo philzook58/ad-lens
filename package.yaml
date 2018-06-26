@@ -49,3 +49,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - ad-lens
+    - hmatrix
