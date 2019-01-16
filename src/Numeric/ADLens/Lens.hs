@@ -6,7 +6,9 @@ module Numeric.ADLens.Lens
     , constlens
     , set
     , view
-    , grad 
+    , grad
+    , Lens (Lens)
+    , Lens'' (Lens'')
     ) where
         
 import Data.Functor.Identity
@@ -14,6 +16,10 @@ import Data.Functor.Const
 import Data.Functor.Compose
 
 type Lens' a b = forall f. Functor f => (b -> f b) -> a -> f a
+
+newtype Lens'' x y = Lens'' (x -> (y, y -> x)) 
+
+newtype Lens x dx y dy = Lens (x -> (y, dy -> dx))
 
 lens'' :: (a -> (b, b -> a)) -> Lens' a b
 lens'' h g x = fmap j fb where
