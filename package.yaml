@@ -27,6 +27,8 @@ library:
   dependencies:
   - hmatrix
   - vector
+  - accelerate
+  - accelerate-llvm-native
 
 executables:
   ad-lens-exe:

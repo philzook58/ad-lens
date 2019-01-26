@@ -79,9 +79,72 @@ instance (Num s, Num a) => Num (Lens s a) where
 newtype Lens f s g a = Lens (f s -> (g a, g a -> f s)) 
 -- 
 
+Nope. these don't make sense
 instance Applicative f => Functor (Lens s f ) ? Maybe if f has more power than just Functor. Applicative makes sense because of the applicative style we're using
 instance Traversable ?
 
+-}
+-- quite confusing.
+{-
+lensmap :: Applicative f => Lens a b -> Lens s (f a) -> Lens s (f b)
+lensmap (Lens f) (Lens x) = Lens $ \s -> let (fa, j) = x s in
+										 let fbb = fmap f fa in
+										 let fb = fmap fst fbb in
+										 let fb2s = fmap snd fbb in
+										 (fb, \fb' -> j (fb2s <*> fb'))
+-}
+lensmap :: Applicative f => Lens a b -> Lens (f a) (f b)
+lensmap (Lens f) = Lens $ \fa ->
+								let fbb = fmap f fa in
+								let fb = fmap fst fbb in
+								let fb2s = fmap snd fbb in
+								(fb, \fb' -> fb2s <*> fb')
+
+-- mappend' :: Monoid m => Lens (m,m) m
+-- mappend' = Lens $ \(m1,m2) -> (m1 <> m2, \m -> (m,m)) -- ? Doesn't really make much sense
+-- Group g => m1 <> m2, \m -> ( , )
+-- list append is the canonical example. This is not always going to make sense probably.
+ 
+
+
+-- (Len s' a -> Lens s' b) -> (Lens s (f a)) -> Lens s (f b)
+-- Lens a b -> Lens (f a) (f b)
+-- Then we can transform into the other forms via lift/unlift
+
+-- ltraverse :: (Applicative f, Applicative t) => Lens a (f b) -> Lens (t a) (f (t b))
+-- ltraverse (Lens f) = Lens $ \ta -> let  f 
+lsequenceA :: (Applicative f, Applicative t, Traversable f, Traversable t) => Lens (t (f a)) (f (t a))
+lsequenceA = Lens $ \tfa -> (sequenceA tfa, sequenceA)
+
+ltraverse :: (Applicative f, Applicative t, Traversable f, Traversable t) =>
+             Lens a (f b) -> Lens (t a) (f (t b))
+ltraverse f = lsequenceA . (lensmap f)
+
+
+-- lfoldr :: Lens (a,b) b -> b -> Lens (t a) b
+-- lfoldr (Lens f) = Lens $ \(b, ta) -> 
+-- lpure :: Lens a (f a) -- gonna need comonadic powers?
+-- lpure 
+-- 
+
+-- huh. This is just fmap
+-- liftA' :: Lens (a,b) c -> Lens (f (a,b)) (f c)
+-- liftA' (Lens f) = Lens $ \fab ->
+
+-- I'm not going to be able to allow raw sequence/fmap functions. :(
+-- (a -> b) just doesn't have gradient info
+-- unless (a -> b) is implcitly (Lens s a') -> Lens a b'? Can I enforce that?
+-- Lens f s a = Lens s (f a) 
+-- Lens' s a = Lens Id s a
+
+
+
+{-
+par'' :: Applicative f => f a -> f b -> f (a,b)
+par'' x y = (,) <*> x <$> y
+
+unpar'' :: Applicative f =>  f (a,b) -> (f a, f b) -- unlift?
+par'' x = (fmap fst x, fmap snd x)
 -}
 -- auto-unlift?
 

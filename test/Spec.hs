@@ -3,9 +3,20 @@ import Numeric.ADLens.Lens
 import Numeric.ADLens.Basic
 import Numeric.ADLens.List
 import Numeric.ADLens.HMatrix
+import Numeric.ADLens.Accelerate as Acc
 
 
 import Numeric.LinearAlgebra
+
+
+import Data.Array.Accelerate as A
+import Data.Array.Accelerate.LLVM.Native  as CPU
+
+{-
+dostuff = CPU.run $ dotp (use xs) (use ys)
+
+fromList (Z:.10) [0..] 
+-}
 
 type L1 = Matrix Double
 type L2 = Matrix Double
