@@ -4,7 +4,8 @@ module Numeric.ADLens.AppBi where
 import Control.Category
 import Prelude hiding (id, (.))
 import Control.Arrow ((***))
-
+import Data.Functor.Const
+import Data.Traversable
 newtype Lens x y = Lens (x -> (y, y -> x)) 
 type L s a = Num s => Lens s a
 
@@ -104,8 +105,8 @@ lensmap (Lens f) = Lens $ \fa ->
 -- mappend' = Lens $ \(m1,m2) -> (m1 <> m2, \m -> (m,m)) -- ? Doesn't really make much sense
 -- Group g => m1 <> m2, \m -> ( , )
 -- list append is the canonical example. This is not always going to make sense probably.
- 
-
+-- Lens s m -> Lens s m -> Lens s m 
+-- 
 
 -- (Len s' a -> Lens s' b) -> (Lens s (f a)) -> Lens s (f b)
 -- Lens a b -> Lens (f a) (f b)
@@ -120,20 +121,88 @@ ltraverse :: (Applicative f, Applicative t, Traversable f, Traversable t) =>
              Lens a (f b) -> Lens (t a) (f (t b))
 ltraverse f = lsequenceA . (lensmap f)
 
+lensfoldl :: Traversable t => Lens (a, b) a -> Lens (a, t b) a
+lensfoldl (Lens f) = Lens $ \(s, t) -> let (y, tape) = mapAccumL (curry f) s t  in
+						  (y,  \db ->  mapAccumR (\db' f -> (f db')) db tape)
+lensfoldr :: Traversable t => Lens (a, b) a -> Lens (a, t b) a
+lensfoldr (Lens f) = Lens $ \(s, t) -> let (y, tape) = mapAccumR (curry f) s t  in
+						(y,  \db ->  mapAccumL (\db' f -> (f db')) db tape)						  
+{-
+foldr = runState (traverse ) b0 
+foldr' f x0 xs =   < $ fmap f xs :: f (b -> b)
+					   traverse (\x acc -> f x) xs
+
+ foldr :: (a -> b -> b) -> b -> t a -> b
+	foldr f z t = appEndo (foldMap (Endo #. f) t) z
+
+	foldMapDefault = coerce (traverse :: (a -> Const m ()) -> t a -> Const m (t ()))
+	newtype Const a b = Const a
+
+
+	foldMapDefault' f xs = getConst $ traverse (Const . f) xs
+	foldr f z t = appEndo (getConst $ traverse (Const . (Endo . f)) t) z
+
+
+	Lens a a  can be a monoid with .
+	
+	Lens (a,b) b
+
+-- and 'foldl'; it applies a function to each element of a structure,
+-- passing an accumulating parameter from left to right, and returning
+-- a final value of this accumulator together with the new structure.
+mapAccumL :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
+mapAccumL f s t = runStateL (traverse (StateL . flip f) t) s
+
+ c in this case is the reverse jacobian
+
+I only need Traversable to fold
+We use the dual mapAccum on the forward and backward pass.
+
+fold (Len f) = Lens $ \(t, s) -> let (y, tape) = mapAccumL (curry f) s t :: (b, [b -> (a,b)]) in
+	                              (y,  \db ->  mapAccumR (\db' f -> snd (f db')) db tape   )
+But I think I need applicative to scan?
+
+
+
+ mapAccumL :: Traversable t => Lens (a,b) (a,c) -> a -> Lens (t b) (a, t c) 
+-- |The 'mapAccumR' function behaves like a combination of 'fmap'
+-- and 'foldr'; it applies a function to each element of a structure,
+-- passing an accumulating parameter from right to left, and returning
+-- a final value of this accumulator together with the new structure.
+mapAccumR :: Traversable t => (a -> b -> (a, c)) -> a -> t b -> (a, t c)
+mapAccumR f s t = runStateR (traverse (StateR . flip f) t) s
+
+Part of doing a fold is also doing a scan
+
+
+-}					   
 
 -- lfoldr :: Lens (a,b) b -> b -> Lens (t a) b
 -- lfoldr (Lens f) = Lens $ \(b, ta) -> 
--- lpure :: Lens a (f a) -- gonna need comonadic powers?
--- lpure 
+-- lpure :: Lens a (f a) -- gonna need comonadic powers? Fair enough I guess
+-- Maybe that means I should work with an adjunction pair?
+-- Lens (f a) b -> Lens a (g b)
+-- and vice versa.
+-- Doesn't make much sense. Lens (a,b) c -> Lens a (b -> c) ? Well the only way I'll build this is via
+-- Represnetable functors? Oooh. This might match well with functional differentation
+-- tabulate
+-- Representable f -> Lens a (Rep f -> b) -> Lens a (f b)
+-- 
+-- intriiiiiguing
+-- lpure :: Lens s a -> Lens s (f a) ?
 -- 
 
 -- huh. This is just fmap
 -- liftA' :: Lens (a,b) c -> Lens (f (a,b)) (f c)
 -- liftA' (Lens f) = Lens $ \fab ->
+-- lift :: Lens -> Lens s (f a) -> Lens s (f b) ->
 
 -- I'm not going to be able to allow raw sequence/fmap functions. :(
 -- (a -> b) just doesn't have gradient info
 -- unless (a -> b) is implcitly (Lens s a') -> Lens a b'? Can I enforce that?
+-- Maybe by using some kind of Yoneda GADT?
+-- Yoneda forall b. Lens a b -> Lens s b  
+-- naw. 
 -- Lens f s a = Lens s (f a) 
 -- Lens' s a = Lens Id s a
 

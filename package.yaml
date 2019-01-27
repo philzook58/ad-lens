@@ -29,6 +29,7 @@ library:
   - vector
   - accelerate
   - accelerate-llvm-native
+  - massiv
 
 executables:
   ad-lens-exe:

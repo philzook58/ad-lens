@@ -39,6 +39,29 @@ intersect x y = proxfix $ compProx (lower x) (lower y)
 -- Proj (a -> a) (Dual a -> Dual a)
 -- porjects x to a position in the set, and a halfspace to one that contains all/none of set, at least one?
 -- Maybe a convex set should just BE projecting the half space.
+
+-- intersection should return seperating hyperplane
+-- interleave projecting half space, and negating under convergence. 
+
+-- if we are in the interior of the set, then the half plane will always move.
+-- if we are outside, we are guaranteed that the 
+-- if both converge, we are on the boundary
+-- 
+
+newtype Dual a = Dual a
+data Proj'' a = Proj'' (a -> a) (Dual a -> Dual a)
+-- (a -> b) (Dual b -> Dual a), combined with a <-> Dual a
+
+-- If we're thinking projective geometry
+-- Then the complement of a point makes sense too
+-- The ocmplement does not contain the point unless it is the entire space
+-- convex sets ~ Cones in porjective space.
+-- minkowski sum = convex hull?
+
+--  It's not really projective geometry. It's cones? Spheres rather than prjective planes?
+-- identifying everything that is a positve scalar multiple.
+-- data Cone = ?
+
 complement :: Num a => (a,a) -> (a,a)
 complement (a,b) = (- a, - b)
 
