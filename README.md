@@ -1,5 +1,5 @@
 # ad-lens
-These blog posts tries to explain a bit about what is going on here
+These blog posts try to explain a bit about what is going on here
 
 http://www.philipzucker.com/reverse-mode-auto-differentiation-kind-like-lens/
 
