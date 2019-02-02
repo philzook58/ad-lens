@@ -30,6 +30,7 @@ library:
   - accelerate
   - accelerate-llvm-native
   - massiv
+  - linear
 
 executables:
   ad-lens-exe:

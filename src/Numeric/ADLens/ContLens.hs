@@ -1,7 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude, TypeSynonymInstances, RankNTypes #-}
 module Numeric.ADLens.ContLens where
 import Prelude
-    
+-- CHAOS REIGNS!
+
 newtype Prox a = Prox (a -> a)
 newtype Proj a = Proj (a -> a)
 
