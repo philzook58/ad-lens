@@ -12,14 +12,18 @@ module Numeric.ADLens.Basic2
     , pow'
     , recip'
     , fst'
-    , Lens''
-    {-
     , snd'
-    , swap'
-    , assoc'
+    , Lens''
+    , id'
+    , par'
     , first'
     , second'
-    -}
+    , comp
+    , labsorb
+    , labsorb'
+    , swap'
+    , assoc'
+    , assoc''
     ) where
 
 import Control.Arrow ((***))
@@ -31,7 +35,8 @@ comp f g x = let (b, dg) = g x in
              let (c, df) = f b in
              (c, dg . df)
 
-
+id' :: Lens'' a a
+id' x = (x, id) 
 
 relu' :: (Ord a, Num a) => Lens'' a a
 relu' = \x -> (frelu x, brelu x) where
@@ -85,15 +90,30 @@ swap' = (\(a,b) -> ((b,a), \(db,da) -> (da, db)))
 
 assoc' :: Lens'' ((a,b),c) (a,(b,c))
 assoc' = \((a,b),c) -> ((a,(b,c)), \(da,(db,dc)) -> ((da,db),dc))
-{-
-par' :: Lens' a b -> Lens' c d -> Lens' (a,c) (b,d)
-par' l1 l2 = f3 where
-    f1 = unlens'' l1
-    f2 = unlens'' l2
-    f3 (a,c) = ((b,d), df1 *** df2) where
-        (b,df1) = f1 a
-        (d,df2) = f2 c
 
+assoc'' :: Lens'' (a,(b,c)) ((a,b),c)
+assoc'' = \(a,(b,c)) -> (((a,b),c), \((da,db),dc)->  (da,(db,dc)))
+
+par' :: Lens'' a b -> Lens'' c d -> Lens'' (a,c) (b,d)
+par' l1 l2 = l3 where
+    l3 (a,c) = let (b , j1) = l1 a in
+               let (d, j2) = l2 c in
+               ((b,d) , j1 *** j2) 
+first' :: Lens'' a b -> Lens'' (a, c) (b, c)
+first' l = par' l id'
+
+second' :: Lens'' a b -> Lens'' (c, a) (c, b)
+second' l = par' id' l
+
+labsorb :: Lens'' ((),a) a
+labsorb (_,a) = (a, \a' -> ((),a'))
+
+labsorb' :: Lens'' a ((),a)
+labsorb' a = (((),a), \(_,a') -> a')
+
+rabsorb :: Lens'' (a,()) a
+rabsorb = comp labsorb swap'
+{-
 fan' :: Num a => Lens' a b -> Lens' a c -> Lens' a (b,c)
 fan' l1 l2 = lens'' f3 where
     f1 = unlens'' l1
@@ -102,9 +122,5 @@ fan' l1 l2 = lens'' f3 where
         (b,df1) = f1 a
         (c,df2) = f2 a
 
-first' :: Lens' a b -> Lens' (a, c) (b, c)
-first' l = par' l id
 
-second' :: Lens' a b -> Lens' (c, a) (c, b)
-second' l = par' id l
 -}

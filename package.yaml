@@ -27,9 +27,9 @@ library:
   dependencies:
   - hmatrix
   - vector
-  - accelerate
-  - accelerate-llvm-native
-  - massiv
+  # - accelerate
+  # - accelerate-llvm-native
+  # - massiv
   - linear
 
 executables:

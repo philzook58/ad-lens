@@ -47,6 +47,7 @@ instance (Num a, Num b) => Num (a,b) where
 	(x,y) * (a,b) = (x * a, y * b)
 	abs (x,y) = abs (x,y)
 	fromInteger x = (fromInteger x, fromInteger x)
+	-- and so on
 
 
 

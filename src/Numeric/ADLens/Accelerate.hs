@@ -3,13 +3,13 @@ module Numeric.ADLens.Accelerate
     ( 
     ) where
 
-import Data.Array.Accelerate as A
+-- import Data.Array.Accelerate as A
 import Numeric.ADLens.Basic2 (Lens'')
 
 --type Lens'' a b = a -> (b, b -> a)
 
-add :: A.Shape b => Lens'' (Acc (Array b Double), Acc (Array b Double)) (Acc (Array b Double))
-add = \(xs,ys) -> (A.zipWith (+) xs ys, \dz -> (dz,dz))
+-- add :: A.Shape b => Lens'' (Acc (Array b Double), Acc (Array b Double)) (Acc (Array b Double))
+-- add = \(xs,ys) -> (A.zipWith (+) xs ys, \dz -> (dz,dz))
 
 --re
 
