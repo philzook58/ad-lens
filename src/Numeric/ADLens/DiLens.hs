@@ -1,67 +1,64 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Numeric.ADLens.TwoCat where
+module Numeric.ADLens.DiLens where
 
 import Numeric.ADLens.Basic2
 {-
-The idea here is that we need to keep weights explicitly out to the side
+The idea here is that we need to keep weights explicitly out to the side.
+In the original approach exposed in Spec.hs, we need to pipe around the weights.
+This works, but the piping is very repetitive and unclear.
+If instead we put the ocmibnation of piping and composition into a new compositions operator
+`hcompose`, this complexity is hidden.
+This also naturally gives rise to the idea of a composition in the weight direction,
+which makes sense for the purposes of weight sharing.
+
 
 The makes the diagrammatics 2D in a way that is slightly different than just monoidal
       |
     ------
 ---|      |---
     ------
+      |
 
 
-    Recurrent nuerla nets flip my intended role of weights and inputs.
-
-
-    
--}
-
-{-  This type is if the weights are only on the input side, but really... -}
--- newtype AD w a b = AD (w -> a -> (b, b -> (a,w)))
-
-type WAD w a b = Lens'' (w,a) b
-{-
-
-vertical, horizontal (compose a,b, par on w ), and diagonal composition (par on both with reassociation)
-From different combos of first second, par, and compose 
-
-The (w,w') form of composition is equaivlanet to a gadt like
-data  = Pure | Compose ::  w ++ w'
-
-To iterate the learning process n times,
-we can just plug the weights into each other.
-
+In a side note 
 
 -}
+
 type WAD' w w' a b = Lens'' (w,a) (w',b)
+type WAD'' w a b = WAD' w () a b
 {- For any monoidal category we can constuct this composition -}
-compose' :: forall w w' w'' w''' a b c. WAD' w' w'' b c -> WAD' w w''' a b -> WAD' (w',w) (w'',w''') a c
-compose' f g = comp f' g' where 
+hcompose :: forall w w' w'' w''' a b c. WAD' w' w'' b c -> WAD' w w''' a b -> WAD' (w',w) (w'',w''') a c
+hcompose f g = comp f' g' where 
                f' :: Lens'' ((w',r),b) ((w'',r),c)
                f' = (first' swap') `comp` assoc'' `comp` (par' id' f) `comp` assoc' `comp`  (first' swap') 
                g' :: Lens'' ((r,w),a) ((r,w'''),b)
                g' = assoc'' `comp` (par' id' g) `comp` assoc' 
-compose :: WAD w' b c -> WAD w a b -> WAD (w',w) a c
-compose f g =  h where
-                        h ((w',w),a) = let (b, g') = g (w, a) in
-                                     let (c, f') = f (w',b) in
-                                     let h' c' = let (w'',b') = f' c' in
-                                                 let (w''',a') = g' b' in
-                                                 ((w'',w'''),a') in
-                                     (c, h')
+
 
 
 rotate :: WAD' w w' a b -> WAD' a b w w'                                      
 rotate f = swap' `comp` f `comp` swap'
 
 vcompose :: WAD' w'  w'' c d -> WAD' w w' a b -> WAD' w w'' (c, a) (d, b)
-vcompose f g = rotate (compose' (rotate f)  (rotate g) )                             
+vcompose f g = rotate (hcompose (rotate f)  (rotate g) )                             
 
 {-
-diagpar :: WAD' w  w' a b -> WAD' w'' w''' c d -> WAD' (w,w') (w'',w''') (a, c) (b, d)
-diagpar = par' + rearrangements
+assoc' :: Lens'' ((a,b),c) (a,(b,c))
+
+assoc'' :: Lens'' (a,(b,c)) ((a,b),c)
+-}
+diagpar :: forall w w' a b w'' w''' c d. WAD' w  w' a b -> WAD' w'' w''' c d 
+           -> WAD' (w,w'') (w',w''') (a, c) (b, d)
+diagpar f g = t' `comp` (par' f g) `comp` t where
+                t :: Lens'' ((w,w''),(a,c)) ((w,a), (w'',c)) -- yikes. just rearrangements.
+                t =  assoc'' `comp` (second' ((second' swap') `comp` assoc' `comp` swap')) `comp` assoc'
+                t' :: Lens'' ((w',b), (w''',d)) ((w',w'''),(b,d)) -- the tranpose of t
+                t' =  assoc'' `comp` (second'  ( swap'  `comp` assoc'' `comp` (second' swap')))  `comp` assoc'
+
+
+{-
+We could also prfitably use a 3 object for 2d fields/ 2d convnets
+
 -}
 
 id''' :: WAD' () () a a
@@ -88,6 +85,33 @@ liftGirl = first'
 -- and so on
 wassoc' = liftGirl assoc' 
 wassoc'' = liftGirl assoc'' 
+
+{-
+I should reproduce my dense layer example
+
+type WAD W1 X1 X2
+type WAD W2 X2 X3
+type WAD 
+
+1-D convnet?
+d
+
+exposes paralleism within a layer.
+1-D convnet
+V2 (V2 (V2 (V2 ))))
+
+
+Batches?
+
+This technique seems useful also for pumping around strategies/weights.
+
+
+
+
+-}
+{-
+
+-}
 
 {-
 type WFun w w' a b = (w,a) -> (w',b)
@@ -127,6 +151,39 @@ absorb f (w,a) = let (b,j) = f (((),w),a) in
 lwabsorb' :: WAD ((),w) a b -> WAD w a b
 lwabsorb' f = comp f (first' labsorb')
 
+
+type WAD w a b = Lens'' (w,a) b
+compose :: WAD w' b c -> WAD w a b -> WAD (w',w) a c
+compose f g =  h where
+                        h ((w',w),a) = let (b, g') = g (w, a) in
+                                     let (c, f') = f (w',b) in
+                                     let h' c' = let (w'',b') = f' c' in
+                                                 let (w''',a') = g' b' in
+                                                 ((w'',w'''),a') in
+                                     (c, h')
+{-
+Recurrent nueral nets flip my intended role of weights and inputs.
+2-d conv-nets are natural 3-dimensional diagrams? 4?
+1-d conv-nets are natural
+-}
+
+{-  This type is if the weights are only on the input side, but really... -}
+-- newtype AD w a b = AD (w -> a -> (b, b -> (a,w)))
+
+
+{-
+
+vertical, horizontal (compose a,b, par on w ), and diagonal composition (par on both with reassociation)
+From different combos of first second, par, and compose 
+
+The (w,w') form of composition is equaivlanet to a gadt like
+data  = Pure | Compose ::  w ++ w'
+
+To iterate the learning process n times,
+we can just plug the weights into each other.
+
+
+-}
 
 
 {-
