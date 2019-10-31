@@ -7,6 +7,8 @@ http://www.philipzucker.com/reverse-mode-differentiation-is-kind-of-like-a-lens-
 
 http://www.philipzucker.com/bidirectional-applicative-programming-and-automatic-differentation/
 
+http://www.philipzucker.com/neural-networks-with-weighty-lenses-dioptics/
+
 Check out the test directory for some usage examples
 
 A lens is a getter and setter pair ```a -> (b, (b->a))```. This is also the signature of reverse mode automatic differentiation. The function ```(b->a)``` is the transposed Jacobian (using a function representation of Matrices. Matrices are a certain kind of Vector -> Vector functions).
