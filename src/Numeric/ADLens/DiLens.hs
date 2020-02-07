@@ -55,14 +55,26 @@ diagpar f g = t' `comp` (par' f g) `comp` t where
                 t' :: Lens'' ((w',b), (w''',d)) ((w',w'''),(b,d)) -- the tranpose of t
                 t' =  assoc'' `comp` (second'  ( swap'  `comp` assoc'' `comp` (second' swap')))  `comp` assoc'
 
-
-{-
-We could also prfitably use a 3 object for 2d fields/ 2d convnets
-
--}
-
 id''' :: WAD' () () a a
 id''' = id'
+
+
+
+
+
+
+-- rotate:: WAD' w a a w
+-- rotate = swap'
+
+liftIO :: Lens'' a b -> WAD' w w a b
+liftIO = second'
+
+liftW :: Lens'' w w' -> WAD' w w' a a
+liftW = first'
+
+
+wassoc' = liftW assoc' 
+wassoc'' = liftW assoc'' 
 
 labsorb'' :: WAD' ((),w) w a a
 labsorb'' = first' labsorb
@@ -73,19 +85,12 @@ labsorb''' = first' labsorb'
 wswap' :: WAD' (w,w') (w',w) a a
 wswap' = first' swap'
 
--- rotate:: WAD' w a a w
--- rotate = swap'
-
-liftGuy :: Lens'' a b -> WAD' w w a b
-liftGuy = second'
-
-liftGirl :: Lens'' w w' -> WAD' w w' a a
-liftGirl = first'
-
 -- and so on
-wassoc' = liftGirl assoc' 
-wassoc'' = liftGirl assoc'' 
 
+{-
+We could also prfitably use a 3 object for 2d fields/ 2d convnets
+
+-}
 {-
 I should reproduce my dense layer example
 

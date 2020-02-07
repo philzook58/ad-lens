@@ -31,6 +31,7 @@ library:
   # - accelerate-llvm-native
   # - massiv
   - linear
+  - intervals
 
 executables:
   ad-lens-exe:
